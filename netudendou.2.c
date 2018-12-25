@@ -3,6 +3,7 @@
 #include<stdio.h>
 #include<math.h>
 #include<time.h>
+#include<omp.h>
 #define X 400
 #define Y 200 //x
 #define mat_ave 1/(X*Y)
@@ -10,7 +11,8 @@
 #define big 0.01
 #define max_try 50000
 #define sum_latteice 800000
-#define ee 1.0E-11
+#define ee 1.0E-12
+
 
 int main() {
 	double temp_lay[Y][X];
@@ -53,17 +55,16 @@ int main() {
 	for ( cout = 0; cout < 50000; ++cout)
 	{
 		sum_delta = 0.0;
+		#pragma omp parallel for 
 		for ( i = 1; i < Y-1; ++i)
 		{
 			for ( t= 1; t < X-1 ; ++t)
 			{	
-
 				delta = temp_lay[i][t];
 				temp_lay2[i][t] = (temp_lay[i][t - 1] + temp_lay[i - 1][t] + temp_lay[i][t + 1] + temp_lay[i + 1][t])*0.25;
 				sum_delta += fabs(temp_lay2[i][t]-delta)*fabs(temp_lay2[i][t]-delta);
 			}
 		}
-
 		for ( i = 1;  i < Y-1; ++i)
 		{
 			for ( t = 1; t < X-1 ; ++t)
@@ -72,7 +73,7 @@ int main() {
 			}
 		}
 
-		if(sum_delta < ee){
+		if(sum_delta*mat_ave < ee){
 			printf("end cal\n");
 			break;
 		}
@@ -89,12 +90,21 @@ int main() {
 	{
 		for (size_t t = 0; t < X; t++)
 		{
-			fprintf(fp1, "%lf %lf %lf \n", (double)i*mini, (double)t*mini, temp_lay[i][t]);
+			fprintf(fp1, "%lf %lf %lf \n", (double)i*big, (double)t*big, temp_lay[i][t]);
 			//fprintf(fp1, "%lf %lf %lf \n", (double)i*big, (double)t*big, temp_lay[i][t]);
 		}
 		fprintf(fp1, "\n");
 	}
 
+		for(int i = 0 ;i < Y;i++){
+		fprintf(temp_10,"%lf %lf\n",(double)i*big,temp_lay[i][(int)(1.0/big)]);
+		fprintf(temp_16,"%lf %lf\n",(double)i*big,temp_lay[i][(int)(1.6/big)]);
+		fprintf(temp_04,"%lf. %lf\n",(double)i*big,temp_lay[i][(int)(0.4/big)]);
+	}
+
+	fclose(temp_04);
+	fclose(temp_16);
+	fclose(temp_10);
 	fclose(fp1);
     return 0;
 }
